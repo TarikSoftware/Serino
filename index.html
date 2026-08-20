@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Serino - Dil Öğren</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐰</text></svg>" />
+<meta id="theme-color-meta" name="theme-color" content="#fff2f6" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ONBOARDING: Hoş geldin -->
+  <section id="screen-welcome" class="screen active">
+    <div class="onboard-card">
+      <div class="mascot-big" id="mascot-welcome"></div>
+      <h1 class="brand">Serino</h1>
+      <p class="tagline">Kelimeler ve cümlelerle, günde birkaç dakikada yeni bir dil öğren.</p>
+      <button class="btn btn-primary btn-lg" onclick="serinoShowNativeStep()">Başla</button>
+    </div>
+  </section>
+
+  <!-- ONBOARDING: Ana dil seçimi -->
+  <section id="screen-native" class="screen">
+    <div class="onboard-card">
+      <button class="onboard-back" onclick="serinoOnboardBackFromNative()" title="Geri">←</button>
+      <h2 class="step-title">Hangi dili konuşuyorsun?</h2>
+      <p class="step-sub">Sana bu dilde rehberlik edeceğiz.</p>
+      <div class="lang-grid" id="native-lang-grid"></div>
+    </div>
+  </section>
+
+  <!-- ONBOARDING: Öğrenilecek dil seçimi -->
+  <section id="screen-learn" class="screen">
+    <div class="onboard-card">
+      <button class="onboard-back" onclick="serinoShowNativeStep()" title="Geri">←</button>
+      <h2 class="step-title">Hangi dili öğrenmek istiyorsun?</h2>
+      <p class="step-sub">İstediğin zaman ayarlardan değiştirebilirsin.</p>
+      <div class="lang-grid" id="learn-lang-grid"></div>
+    </div>
+  </section>
+
+  <!-- ONBOARDING: İsim -->
+  <section id="screen-name" class="screen">
+    <div class="onboard-card">
+      <div class="mascot-big" id="mascot-name"></div>
+      <h2 class="step-title">Sana nasıl seslenelim?</h2>
+      <input id="name-input" class="text-input" type="text" placeholder="Adın" maxlength="20" />
+      <button class="btn btn-primary btn-lg" onclick="serinoFinishOnboarding()">Serino'ya Başla</button>
+    </div>
+  </section>
+
+  <!-- ANA EKRAN: Ders yolu -->
+  <section id="screen-home" class="screen">
+    <div class="home-sidebar">
+      <header class="topbar">
+        <button class="topbar-course" id="home-course-label" onclick="serinoOpenCourses()" title="Kurslarım"></button>
+        <div class="topbar-stats">
+          <span class="stat stat-streak" id="stat-streak-wrap"><span class="stat-icon" id="stat-streak-icon">🔥</span><span id="stat-streak">0</span></span>
+          <span class="stat stat-xp"><span class="stat-icon">⭐</span><span id="stat-xp">0</span></span>
+          <button class="icon-btn theme-toggle-icon" onclick="serinoToggleTheme()" title="Görünüm"></button>
+          <button class="icon-btn" onclick="serinoOpenSettings()" title="Ayarlar">⚙️</button>
+        </div>
+      </header>
+
+      <div class="home-greeting">
+        <div class="mascot-mid" id="mascot-home"></div>
+        <div class="speech-bubble">
+          <h2 id="home-greeting-text">Merhaba!</h2>
+          <p id="home-greeting-note"></p>
+        </div>
+      </div>
+
+      <div class="weekly-card">
+        <span class="weekly-card-icon">📅</span>
+        <div class="weekly-card-body">
+          <strong><span id="weekly-xp">0</span> XP · bu hafta</strong>
+          <span id="weekly-message"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-main">
+      <div class="path" id="unit-path"></div>
+    </div>
+  </section>
+
+  <!-- DERS EKRANI -->
+  <section id="screen-lesson" class="screen">
+    <header class="lesson-top">
+      <button class="icon-btn" onclick="serinoQuitLesson()" title="Kapat">✕</button>
+      <div class="progress-bar"><div class="progress-fill" id="lesson-progress"></div></div>
+      <div class="hearts" id="lesson-hearts"></div>
+    </header>
+
+    <div class="lesson-body">
+      <p class="lesson-instruction" id="lesson-instruction">Doğru çeviriyi seç</p>
+      <div class="prompt-card">
+        <span class="prompt-word" id="prompt-word">kelime</span>
+      </div>
+      <div class="options-grid" id="options-grid"></div>
+      <div class="build-area" id="build-area">
+        <div class="answer-row" id="answer-row"></div>
+        <div class="tile-bank" id="tile-bank"></div>
+      </div>
+    </div>
+
+    <footer class="lesson-footer">
+      <p class="feedback-text" id="feedback-text"></p>
+      <button class="btn btn-primary btn-lg" id="lesson-continue-btn" onclick="serinoNextStep()" disabled>Devam Et</button>
+    </footer>
+  </section>
+
+  <!-- SONUÇ EKRANI -->
+  <section id="screen-result" class="screen">
+    <div class="onboard-card">
+      <div class="mascot-big" id="result-mascot"></div>
+      <h2 id="result-title">Ders tamamlandı!</h2>
+      <p class="result-note" id="result-note"></p>
+      <div class="result-stats">
+        <div class="result-stat"><span class="result-stat-icon">✅</span><span id="result-correct">0</span><small>Doğru</small></div>
+        <div class="result-stat"><span class="result-stat-icon">⭐</span><span id="result-xp">0</span><small>XP</small></div>
+        <div class="result-stat"><span class="result-stat-icon">🔥</span><span id="result-streak">0</span><small>Seri</small></div>
+      </div>
+      <button class="btn btn-primary btn-lg" onclick="serinoBackHomeFromResult()">Devam Et</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- AYARLAR MODAL -->
+<div id="settings-overlay" class="overlay" onclick="serinoCloseSettingsIfBackdrop(event)">
+  <div class="settings-modal">
+    <h3>Ayarlar</h3>
+    <p class="settings-course" id="settings-course-label"></p>
+    <button class="btn btn-secondary" id="sound-toggle-btn" onclick="serinoToggleSound()">🔊 Ses Açık</button>
+    <button class="btn btn-secondary theme-toggle-label" onclick="serinoToggleTheme()"></button>
+    <button class="btn btn-secondary" onclick="serinoCloseSettings(); serinoOpenCourses();">Kurslarım</button>
+    <button class="btn btn-secondary" onclick="serinoResetProgressClick()">Bu Kursu Sıfırla</button>
+    <button class="btn btn-danger" onclick="serinoResetAllClick()">Tüm Verileri Sil</button>
+    <button class="btn btn-text" onclick="serinoCloseSettings()">Kapat</button>
+  </div>
+</div>
+
+<!-- KURSLAR MODAL -->
+<div id="courses-overlay" class="overlay" onclick="serinoCloseCoursesIfBackdrop(event)">
+  <div class="settings-modal">
+    <h3>Kurslarım</h3>
+    <div id="courses-list" class="courses-list"></div>
+    <button class="btn btn-secondary" onclick="serinoStartAddCourse()">+ Yeni Kurs Ekle</button>
+    <button class="btn btn-text" onclick="serinoCloseCourses()">Kapat</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/copy.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
