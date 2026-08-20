@@ -19,17 +19,17 @@
     <div class="onboard-card">
       <div class="mascot-big" id="mascot-welcome"></div>
       <h1 class="brand">Serino</h1>
-      <p class="tagline">Kelimeler ve cümlelerle, günde birkaç dakikada yeni bir dil öğren.</p>
-      <button class="btn btn-primary btn-lg" onclick="serinoShowNativeStep()">Başla</button>
+      <p class="tagline" data-i18n="brand_tagline"></p>
+      <button class="btn btn-primary btn-lg" data-i18n="btn_start" onclick="serinoShowNativeStep()"></button>
     </div>
   </section>
 
   <!-- ONBOARDING: Ana dil seçimi -->
   <section id="screen-native" class="screen">
     <div class="onboard-card">
-      <button class="onboard-back" onclick="serinoOnboardBackFromNative()" title="Geri">←</button>
-      <h2 class="step-title">Hangi dili konuşuyorsun?</h2>
-      <p class="step-sub">Sana bu dilde rehberlik edeceğiz.</p>
+      <button class="onboard-back" onclick="serinoOnboardBackFromNative()" data-i18n-title="back_title">←</button>
+      <h2 class="step-title" data-i18n="native_title"></h2>
+      <p class="step-sub" data-i18n="native_sub"></p>
       <div class="lang-grid" id="native-lang-grid"></div>
     </div>
   </section>
@@ -37,9 +37,9 @@
   <!-- ONBOARDING: Öğrenilecek dil seçimi -->
   <section id="screen-learn" class="screen">
     <div class="onboard-card">
-      <button class="onboard-back" onclick="serinoShowNativeStep()" title="Geri">←</button>
-      <h2 class="step-title">Hangi dili öğrenmek istiyorsun?</h2>
-      <p class="step-sub">İstediğin zaman ayarlardan değiştirebilirsin.</p>
+      <button class="onboard-back" onclick="serinoShowNativeStep()" data-i18n-title="back_title">←</button>
+      <h2 class="step-title" data-i18n="learn_title"></h2>
+      <p class="step-sub" data-i18n="learn_sub"></p>
       <div class="lang-grid" id="learn-lang-grid"></div>
     </div>
   </section>
@@ -48,9 +48,9 @@
   <section id="screen-name" class="screen">
     <div class="onboard-card">
       <div class="mascot-big" id="mascot-name"></div>
-      <h2 class="step-title">Sana nasıl seslenelim?</h2>
-      <input id="name-input" class="text-input" type="text" placeholder="Adın" maxlength="20" />
-      <button class="btn btn-primary btn-lg" onclick="serinoFinishOnboarding()">Serino'ya Başla</button>
+      <h2 class="step-title" data-i18n="name_title"></h2>
+      <input id="name-input" class="text-input" type="text" data-i18n-placeholder="name_placeholder" maxlength="20" />
+      <button class="btn btn-primary btn-lg" data-i18n="btn_start_serino" onclick="serinoFinishOnboarding()"></button>
     </div>
   </section>
 
@@ -58,12 +58,12 @@
   <section id="screen-home" class="screen">
     <div class="home-sidebar">
       <header class="topbar">
-        <button class="topbar-course" id="home-course-label" onclick="serinoOpenCourses()" title="Kurslarım"></button>
+        <button class="topbar-course" id="home-course-label" onclick="serinoOpenCourses()" data-i18n-title="courses_title"></button>
         <div class="topbar-stats">
           <span class="stat stat-streak" id="stat-streak-wrap"><span class="stat-icon" id="stat-streak-icon">🔥</span><span id="stat-streak">0</span></span>
           <span class="stat stat-xp"><span class="stat-icon">⭐</span><span id="stat-xp">0</span></span>
-          <button class="icon-btn theme-toggle-icon" onclick="serinoToggleTheme()" title="Görünüm"></button>
-          <button class="icon-btn" onclick="serinoOpenSettings()" title="Ayarlar">⚙️</button>
+          <button class="icon-btn theme-toggle-icon" onclick="serinoToggleTheme()" data-i18n-title="theme_title"></button>
+          <button class="icon-btn" onclick="serinoOpenSettings()" data-i18n-title="settings_title">⚙️</button>
         </div>
       </header>
 
@@ -78,7 +78,7 @@
       <div class="weekly-card">
         <span class="weekly-card-icon">📅</span>
         <div class="weekly-card-body">
-          <strong><span id="weekly-xp">0</span> XP · bu hafta</strong>
+          <strong><span id="weekly-xp">0</span> <span id="weekly-label"></span></strong>
           <span id="weekly-message"></span>
         </div>
       </div>
@@ -92,26 +92,26 @@
   <!-- DERS EKRANI -->
   <section id="screen-lesson" class="screen">
     <header class="lesson-top">
-      <button class="icon-btn" onclick="serinoQuitLesson()" title="Kapat">✕</button>
+      <button class="icon-btn" onclick="serinoQuitLesson()" data-i18n-title="btn_close">✕</button>
       <div class="progress-bar"><div class="progress-fill" id="lesson-progress"></div></div>
       <div class="hearts" id="lesson-hearts"></div>
     </header>
 
     <div class="lesson-body">
-      <p class="lesson-instruction" id="lesson-instruction">Doğru çeviriyi seç</p>
+      <p class="lesson-instruction" id="lesson-instruction"></p>
       <div class="prompt-card">
         <span class="prompt-word" id="prompt-word">kelime</span>
       </div>
       <div class="options-grid" id="options-grid"></div>
       <div class="build-area" id="build-area">
-        <div class="answer-row" id="answer-row"></div>
+        <div class="answer-row" id="answer-row" data-i18n-empty="tile_placeholder"></div>
         <div class="tile-bank" id="tile-bank"></div>
       </div>
     </div>
 
     <footer class="lesson-footer">
       <p class="feedback-text" id="feedback-text"></p>
-      <button class="btn btn-primary btn-lg" id="lesson-continue-btn" onclick="serinoNextStep()" disabled>Devam Et</button>
+      <button class="btn btn-primary btn-lg" id="lesson-continue-btn" data-i18n="btn_continue" onclick="serinoNextStep()" disabled></button>
     </footer>
   </section>
 
@@ -122,11 +122,11 @@
       <h2 id="result-title">Ders tamamlandı!</h2>
       <p class="result-note" id="result-note"></p>
       <div class="result-stats">
-        <div class="result-stat"><span class="result-stat-icon">✅</span><span id="result-correct">0</span><small>Doğru</small></div>
+        <div class="result-stat"><span class="result-stat-icon">✅</span><span id="result-correct">0</span><small data-i18n="result_correct_label"></small></div>
         <div class="result-stat"><span class="result-stat-icon">⭐</span><span id="result-xp">0</span><small>XP</small></div>
-        <div class="result-stat"><span class="result-stat-icon">🔥</span><span id="result-streak">0</span><small>Seri</small></div>
+        <div class="result-stat"><span class="result-stat-icon">🔥</span><span id="result-streak">0</span><small data-i18n="result_streak_label"></small></div>
       </div>
-      <button class="btn btn-primary btn-lg" onclick="serinoBackHomeFromResult()">Devam Et</button>
+      <button class="btn btn-primary btn-lg" data-i18n="btn_continue" onclick="serinoBackHomeFromResult()"></button>
     </div>
   </section>
 
@@ -135,28 +135,29 @@
 <!-- AYARLAR MODAL -->
 <div id="settings-overlay" class="overlay" onclick="serinoCloseSettingsIfBackdrop(event)">
   <div class="settings-modal">
-    <h3>Ayarlar</h3>
+    <h3 data-i18n="settings_h3"></h3>
     <p class="settings-course" id="settings-course-label"></p>
-    <button class="btn btn-secondary" id="sound-toggle-btn" onclick="serinoToggleSound()">🔊 Ses Açık</button>
+    <button class="btn btn-secondary" id="sound-toggle-btn" onclick="serinoToggleSound()"></button>
     <button class="btn btn-secondary theme-toggle-label" onclick="serinoToggleTheme()"></button>
-    <button class="btn btn-secondary" onclick="serinoCloseSettings(); serinoOpenCourses();">Kurslarım</button>
-    <button class="btn btn-secondary" onclick="serinoResetProgressClick()">Bu Kursu Sıfırla</button>
-    <button class="btn btn-danger" onclick="serinoResetAllClick()">Tüm Verileri Sil</button>
-    <button class="btn btn-text" onclick="serinoCloseSettings()">Kapat</button>
+    <button class="btn btn-secondary" data-i18n="btn_my_courses" onclick="serinoCloseSettings(); serinoOpenCourses();"></button>
+    <button class="btn btn-secondary" data-i18n="btn_reset_course" onclick="serinoResetProgressClick()"></button>
+    <button class="btn btn-danger" data-i18n="btn_reset_all" onclick="serinoResetAllClick()"></button>
+    <button class="btn btn-text" data-i18n="btn_close" onclick="serinoCloseSettings()"></button>
   </div>
 </div>
 
 <!-- KURSLAR MODAL -->
 <div id="courses-overlay" class="overlay" onclick="serinoCloseCoursesIfBackdrop(event)">
   <div class="settings-modal">
-    <h3>Kurslarım</h3>
+    <h3 data-i18n="courses_h3"></h3>
     <div id="courses-list" class="courses-list"></div>
-    <button class="btn btn-secondary" onclick="serinoStartAddCourse()">+ Yeni Kurs Ekle</button>
-    <button class="btn btn-text" onclick="serinoCloseCourses()">Kapat</button>
+    <button class="btn btn-secondary" data-i18n="btn_add_course" onclick="serinoStartAddCourse()"></button>
+    <button class="btn btn-text" data-i18n="btn_close" onclick="serinoCloseCourses()"></button>
   </div>
 </div>
 
 <script src="js/data.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/copy.js"></script>
 <script src="js/app.js"></script>

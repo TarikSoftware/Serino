@@ -20,6 +20,7 @@ function serinoGoto(screenId) {
 document.addEventListener("DOMContentLoaded", () => {
   document.body.dataset.daytime = serinoDaytimePeriod();
   serinoApplyTheme();
+  serinoApplyUiLanguage();
   document.getElementById("mascot-welcome").innerHTML = serinoMascotSVG("happy");
   document.getElementById("mascot-name").innerHTML = serinoMascotSVG("normal");
   serinoRenderSoundToggle();
@@ -83,10 +84,10 @@ function serinoRenderCoursesList() {
     row.innerHTML = `
       <span class="course-row-flag">${to.flag}</span>
       <span class="course-row-body">
-        <strong>${to.name}</strong>
-        <small>${from.name}'den &middot; ${done}/${total} ünite</small>
+        <strong>${to.name[serinoUiLang]}</strong>
+        <small>${serinoT("course_from_template", { lang: from.name[serinoUiLang] })} &middot; ${serinoT("units_done_template", { done, total })}</small>
       </span>
-      ${isActive ? '<span class="course-row-badge">Aktif</span>' : ""}
+      ${isActive ? `<span class="course-row-badge">${serinoT("badge_active")}</span>` : ""}
     `;
     row.onclick = () => {
       if (isActive) return;
@@ -116,7 +117,7 @@ function serinoRenderLangGrid(containerId, excludeLang, onPick) {
     const lang = SERINO_LANGUAGES[code];
     const card = document.createElement("button");
     card.className = "lang-card";
-    card.innerHTML = `<span class="lang-flag">${lang.flag}</span><span>${lang.name}</span>`;
+    card.innerHTML = `<span class="lang-flag">${lang.flag}</span><span>${lang.name[serinoUiLang]}</span>`;
     card.onclick = () => onPick(code);
     grid.appendChild(card);
   });
@@ -133,6 +134,7 @@ function serinoOnboardBackFromNative() {
 function serinoShowNativeStep() {
   serinoRenderLangGrid("native-lang-grid", null, (code) => {
     serinoOnboard.nativeLang = code;
+    serinoSetUiLang(code);
     serinoShowLearnStep();
   });
   serinoGoto("screen-native");
@@ -159,7 +161,7 @@ function serinoShowLearnStep() {
 
 function serinoFinishOnboarding() {
   const nameInput = document.getElementById("name-input");
-  const name = nameInput.value.trim() || "Öğrenci";
+  const name = nameInput.value.trim() || serinoT("default_name");
 
   serinoState.profile = { name: name, createdAt: new Date().toISOString() };
   serinoAddOrSwitchCourse(serinoOnboard.nativeLang, serinoOnboard.learnLang);
@@ -173,7 +175,7 @@ function serinoCourseLabel() {
   const course = serinoActiveCourse();
   const from = SERINO_LANGUAGES[course.nativeLang];
   const to = SERINO_LANGUAGES[course.learnLang];
-  return `${from.flag} ${from.name} → ${to.flag} ${to.name}`;
+  return `${from.flag} ${from.name[serinoUiLang]} → ${to.flag} ${to.name[serinoUiLang]}`;
 }
 
 function serinoRenderHome() {
@@ -183,14 +185,16 @@ function serinoRenderHome() {
   const period = serinoDaytimePeriod();
   document.body.dataset.daytime = period;
 
+  serinoSetUiLang(course.nativeLang);
   document.getElementById("home-course-label").textContent = serinoCourseLabel();
+  document.getElementById("weekly-label").textContent = serinoT("weekly_label");
   document.getElementById("stat-streak").textContent = progress.streak;
   document.getElementById("stat-xp").textContent = progress.xp;
 
   const flameScale = 1 + Math.min(progress.streak, 20) * 0.025;
   document.getElementById("stat-streak-wrap").style.setProperty("--flame-scale", flameScale);
 
-  const g = SERINO_GREETINGS[period];
+  const g = SERINO_GREETINGS[serinoUiLang][period];
   document.getElementById("home-greeting-text").textContent = `${g.salutation}, ${profile.name}!`;
   document.getElementById("home-greeting-note").textContent = serinoRandomFrom(g.notes);
   document.getElementById("mascot-home").innerHTML = serinoMascotSVG("normal");
@@ -266,7 +270,7 @@ function serinoCloseSettingsIfBackdrop(evt) {
 }
 
 function serinoResetProgressClick() {
-  if (confirm("Bu kursun ilerlemesi (tamamlanan üniteler) sıfırlansın mı?")) {
+  if (confirm(serinoT("confirm_reset_course"))) {
     serinoResetCourseProgress(serinoActiveCourse());
     serinoSaveState(serinoState);
     serinoRenderHome();
@@ -275,7 +279,7 @@ function serinoResetProgressClick() {
 }
 
 function serinoResetAllClick() {
-  if (confirm("Tüm veriler silinsin mi? Bu işlem geri alınamaz.")) {
+  if (confirm(serinoT("confirm_reset_all"))) {
     serinoResetAll();
     location.reload();
   }
@@ -290,7 +294,7 @@ function serinoToggleSound() {
 
 function serinoRenderSoundToggle() {
   const btn = document.getElementById("sound-toggle-btn");
-  btn.textContent = serinoState.settings.sound ? "🔊 Ses Açık" : "🔇 Ses Kapalı";
+  btn.textContent = serinoT(serinoState.settings.sound ? "sound_on" : "sound_off");
 }
 
 /* ---------- Görünüm (açık/koyu mod) ---------- */
@@ -316,9 +320,10 @@ function serinoToggleTheme() {
 function serinoRenderThemeToggle() {
   const resolved = serinoResolvedTheme();
   const icon = resolved === "dark" ? "🌙" : "☀️";
-  const label = resolved === "dark" ? "Koyu Mod" : "Açık Mod";
   document.querySelectorAll(".theme-toggle-icon").forEach((btn) => (btn.textContent = icon));
-  document.querySelectorAll(".theme-toggle-label").forEach((btn) => (btn.textContent = `${icon} ${label}`));
+  document.querySelectorAll(".theme-toggle-label").forEach(
+    (btn) => (btn.textContent = serinoT(resolved === "dark" ? "theme_dark" : "theme_light"))
+  );
 }
 
 function serinoUpdateThemeColorMeta() {
@@ -470,7 +475,7 @@ function serinoStartLesson(unitId) {
 }
 
 function serinoQuitLesson() {
-  if (confirm("Dersten çıkmak istediğine emin misin? İlerlemen kaydedilmeyecek.")) {
+  if (confirm(serinoT("confirm_quit_lesson"))) {
     serinoSession = null;
     serinoGoto("screen-home");
   }
@@ -491,14 +496,14 @@ function serinoRenderQuestion() {
   promptEl.classList.toggle("prompt-sentence", q.type === "build");
 
   document.getElementById("lesson-instruction").textContent =
-    q.type === "build" ? "Kelimeleri doğru sırada diz" : "Doğru çeviriyi seç";
+    serinoT(q.type === "build" ? "instruction_build" : "instruction_choice");
 
   document.getElementById("feedback-text").textContent = "";
   document.getElementById("feedback-text").className = "feedback-text";
 
   const continueBtn = document.getElementById("lesson-continue-btn");
   continueBtn.disabled = true;
-  continueBtn.textContent = "Devam Et";
+  continueBtn.textContent = serinoT("btn_continue");
 
   if (q.type === "build") {
     document.getElementById("options-grid").style.display = "none";
@@ -618,13 +623,13 @@ function serinoApplyAnswerResult(isCorrect, correctText) {
   if (isCorrect) {
     s.correct += 1;
     s.xpGain += 10;
-    feedback.textContent = "Harika! 🎉";
+    feedback.textContent = serinoT("feedback_correct");
     feedback.className = "feedback-text feedback-correct";
     serinoSpawnConfetti(document.querySelector(".prompt-card"));
     serinoSoundCorrect();
   } else {
     s.hearts -= 1;
-    feedback.textContent = `Doğrusu: ${correctText}`;
+    feedback.textContent = serinoT("feedback_wrong_template", { text: correctText });
     feedback.className = "feedback-text feedback-wrong";
     serinoShakeElement(document.querySelector(".prompt-card"));
     serinoSoundWrong();
@@ -634,7 +639,7 @@ function serinoApplyAnswerResult(isCorrect, correctText) {
 
   const continueBtn = document.getElementById("lesson-continue-btn");
   continueBtn.disabled = false;
-  continueBtn.textContent = s.hearts <= 0 ? "Bitir" : "Devam Et";
+  continueBtn.textContent = serinoT(s.hearts <= 0 ? "btn_finish" : "btn_continue");
 }
 
 function serinoNextStep() {
@@ -679,11 +684,12 @@ function serinoFinishLesson(success) {
   if (success) serinoSoundComplete();
 
   document.getElementById("result-mascot").innerHTML = serinoMascotSVG(success ? "happy" : "sad");
-  document.getElementById("result-title").textContent = success
-    ? "Ders tamamlandı!"
-    : "Canların bitti, tekrar dene!";
+  document.getElementById("result-title").textContent = serinoT(
+    success ? "result_success_title" : "result_fail_title"
+  );
+  const resultPool = SERINO_RESULT_MESSAGES[serinoUiLang] || SERINO_RESULT_MESSAGES.tr;
   document.getElementById("result-note").textContent = serinoRandomFrom(
-    success ? SERINO_RESULT_MESSAGES.success : SERINO_RESULT_MESSAGES.fail
+    success ? resultPool.success : resultPool.fail
   );
   document.getElementById("result-correct").textContent = `${s.correct}/${s.questions.length}`;
   document.getElementById("result-streak").textContent = progress.streak;

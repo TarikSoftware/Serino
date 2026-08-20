@@ -1,33 +1,117 @@
 /* Serino - sıcak metin havuzları, maskot çizimi ve gün vakti yardımcıları. */
 
 const SERINO_GREETINGS = {
-  morning: { salutation: "Günaydın", notes: ["Güne enerjik başla ☀️", "Kahvenle birlikte birkaç kelime?"] },
-  afternoon: { salutation: "İyi günler", notes: ["Güzel bir mola zamanı", "Biraz kelime öğrenmeye ne dersin?"] },
-  evening: { salutation: "İyi akşamlar", notes: ["Günü güzel bitir", "Akşam pratiği seni bekliyor"] },
-  night: { salutation: "İyi geceler", notes: ["Uyumadan önce birkaç kelime", "Sessiz bir çalışma anı"] },
+  tr: {
+    morning: { salutation: "Günaydın", notes: ["Güne enerjik başla ☀️", "Kahvenle birlikte birkaç kelime?"] },
+    afternoon: { salutation: "İyi günler", notes: ["Güzel bir mola zamanı", "Biraz kelime öğrenmeye ne dersin?"] },
+    evening: { salutation: "İyi akşamlar", notes: ["Günü güzel bitir", "Akşam pratiği seni bekliyor"] },
+    night: { salutation: "İyi geceler", notes: ["Uyumadan önce birkaç kelime", "Sessiz bir çalışma anı"] },
+  },
+  en: {
+    morning: { salutation: "Good morning", notes: ["Start your day with energy ☀️", "A few words with your coffee?"] },
+    afternoon: { salutation: "Good afternoon", notes: ["A perfect little break", "How about learning a few words?"] },
+    evening: { salutation: "Good evening", notes: ["End your day nicely", "Your evening practice is waiting"] },
+    night: { salutation: "Good night", notes: ["A few words before bed", "A quiet moment to study"] },
+  },
+  fr: {
+    morning: { salutation: "Bonjour", notes: ["Commence ta journée en pleine forme ☀️", "Quelques mots avec ton café ?"] },
+    afternoon: { salutation: "Bon après-midi", notes: ["Une petite pause parfaite", "Et si tu apprenais quelques mots ?"] },
+    evening: { salutation: "Bonsoir", notes: ["Termine bien ta journée", "Ta pratique du soir t'attend"] },
+    night: { salutation: "Bonne nuit", notes: ["Quelques mots avant de dormir", "Un moment calme pour étudier"] },
+  },
+  es: {
+    morning: { salutation: "Buenos días", notes: ["Empieza el día con energía ☀️", "¿Unas palabras con tu café?"] },
+    afternoon: { salutation: "Buenas tardes", notes: ["Un buen momento para un descanso", "¿Qué tal aprender algunas palabras?"] },
+    evening: { salutation: "Buenas noches", notes: ["Termina bien el día", "Tu práctica de la noche te espera"] },
+    night: { salutation: "Buenas noches", notes: ["Unas palabras antes de dormir", "Un momento tranquilo para estudiar"] },
+  },
 };
 
 const SERINO_RESULT_MESSAGES = {
-  success: [
-    "Bugün de bir adım ileri gittin.",
-    "Ne sıcak bir öğrenme anıydı!",
-    "Böyle devam, harika gidiyorsun.",
-    "Küçük adımlar büyük fark yaratır.",
-  ],
-  fail: [
-    "Olsun, bir dahaki sefere olacak.",
-    "Her deneme seni biraz daha ileri taşır.",
-    "Derin bir nefes al ve tekrar dene.",
-    "Vazgeçmek yok, kahveni tazele ve devam et.",
-  ],
+  tr: {
+    success: [
+      "Bugün de bir adım ileri gittin.",
+      "Ne sıcak bir öğrenme anıydı!",
+      "Böyle devam, harika gidiyorsun.",
+      "Küçük adımlar büyük fark yaratır.",
+    ],
+    fail: [
+      "Olsun, bir dahaki sefere olacak.",
+      "Her deneme seni biraz daha ileri taşır.",
+      "Derin bir nefes al ve tekrar dene.",
+      "Vazgeçmek yok, kahveni tazele ve devam et.",
+    ],
+  },
+  en: {
+    success: [
+      "You took another step forward today.",
+      "What a warm learning moment!",
+      "Keep going, you're doing great.",
+      "Small steps make a big difference.",
+    ],
+    fail: [
+      "No worries, next time will be better.",
+      "Every attempt takes you a little further.",
+      "Take a deep breath and try again.",
+      "Don't give up, refill your coffee and continue.",
+    ],
+  },
+  fr: {
+    success: [
+      "Tu as fait un pas de plus aujourd'hui.",
+      "Quel bon moment d'apprentissage !",
+      "Continue comme ça, tu te débrouilles très bien.",
+      "Les petits pas font une grande différence.",
+    ],
+    fail: [
+      "Ce n'est rien, ce sera mieux la prochaine fois.",
+      "Chaque essai te fait progresser un peu plus.",
+      "Prends une grande respiration et réessaie.",
+      "N'abandonne pas, ressers-toi un café et continue.",
+    ],
+  },
+  es: {
+    success: [
+      "Hoy diste un paso más.",
+      "¡Qué buen momento de aprendizaje!",
+      "Sigue así, lo estás haciendo genial.",
+      "Los pequeños pasos marcan una gran diferencia.",
+    ],
+    fail: [
+      "No pasa nada, la próxima será mejor.",
+      "Cada intento te lleva un poco más lejos.",
+      "Respira hondo e inténtalo de nuevo.",
+      "No te rindas, rellena tu café y continúa.",
+    ],
+  },
 };
 
-const SERINO_WEEKLY_MESSAGES = [
-  { min: 0, text: "Bu hafta yeni başlangıçlar için harika bir zaman." },
-  { min: 1, text: "Güzel bir başlangıç yaptın." },
-  { min: 60, text: "Bu hafta gayet sıcak geçiyor!" },
-  { min: 150, text: "Ne sıcak bir öğrenme haftası!" },
-];
+const SERINO_WEEKLY_MESSAGES = {
+  tr: [
+    { min: 0, text: "Bu hafta yeni başlangıçlar için harika bir zaman." },
+    { min: 1, text: "Güzel bir başlangıç yaptın." },
+    { min: 60, text: "Bu hafta gayet sıcak geçiyor!" },
+    { min: 150, text: "Ne sıcak bir öğrenme haftası!" },
+  ],
+  en: [
+    { min: 0, text: "A great time for a fresh start this week." },
+    { min: 1, text: "You made a nice start." },
+    { min: 60, text: "This week is off to a warm start!" },
+    { min: 150, text: "What a warm learning week!" },
+  ],
+  fr: [
+    { min: 0, text: "Un bon moment pour un nouveau départ cette semaine." },
+    { min: 1, text: "Tu as fait un joli début." },
+    { min: 60, text: "Cette semaine se passe très bien !" },
+    { min: 150, text: "Quelle semaine d'apprentissage formidable !" },
+  ],
+  es: [
+    { min: 0, text: "Un buen momento para un nuevo comienzo esta semana." },
+    { min: 1, text: "Hiciste un buen comienzo." },
+    { min: 60, text: "¡Esta semana va muy bien!" },
+    { min: 150, text: "¡Qué semana de aprendizaje tan buena!" },
+  ],
+};
 
 function serinoDaytimePeriod() {
   const hour = new Date().getHours();
@@ -42,7 +126,8 @@ function serinoRandomFrom(arr) {
 }
 
 function serinoWeeklyMessage(xp) {
-  const matches = SERINO_WEEKLY_MESSAGES.filter((m) => xp >= m.min);
+  const pool = SERINO_WEEKLY_MESSAGES[serinoUiLang] || SERINO_WEEKLY_MESSAGES.tr;
+  const matches = pool.filter((m) => xp >= m.min);
   return matches[matches.length - 1].text;
 }
 
