@@ -5,6 +5,7 @@ let serinoOnboard = { nativeLang: null, learnLang: null };
 let serinoOnboardMode = "new"; // "new" (yeni hesap) | "add" (mevcut hesaba yeni kurs)
 let serinoSession = null; // aktif ders oturumu
 let serinoAudioCtx = null;
+let serinoPendingLessonUnitId = null; // bilgilendirme ekranında bekleyen ünite
 
 /* ---------- Ekran geçişleri ---------- */
 
@@ -203,6 +204,8 @@ function serinoRenderHome() {
   document.getElementById("weekly-xp").textContent = weeklyXp;
   document.getElementById("weekly-message").textContent = serinoWeeklyMessage(weeklyXp);
 
+  serinoRenderAlphabetCard(course);
+
   const path = document.getElementById("unit-path");
   path.innerHTML = "";
   let lastLevelId = null;
@@ -237,7 +240,7 @@ function serinoRenderHome() {
     node.title = category.label[course.nativeLang];
     node.onclick = () => {
       node.classList.add("bounce");
-      setTimeout(() => serinoStartLesson(unit.id), 160);
+      setTimeout(() => serinoOpenLessonInfo(unit.id), 160);
     };
 
     const label = document.createElement("div");
@@ -251,6 +254,271 @@ function serinoRenderHome() {
     wrap.appendChild(label);
     path.appendChild(wrap);
   });
+}
+
+/* ---------- Sözlüğüm (ilerlemeye bağlı büyüyen kelime listesi) ----------
+   Ayrı bir depoda tutulmaz: tamamlanan ünitelerin kelimelerinden anlık
+   olarak türetilir, böylece yeni bir ünite bitirildiğinde sözlük otomatik
+   büyür ve asla ilerlemeyle senkron dışı kalmaz. */
+
+function serinoDictionaryEntries(course) {
+  const entries = [];
+  SERINO_UNITS.forEach((unit) => {
+    if (!course.completedUnits.includes(unit.id)) return;
+    const category = serinoCategory(unit.categoryId);
+    unit.words.forEach((word) => {
+      entries.push({
+        learnWord: word[course.learnLang],
+        nativeWord: word[course.nativeLang],
+        categoryLabel: category.label[course.nativeLang],
+        categoryIcon: category.icon,
+      });
+    });
+  });
+  return entries;
+}
+
+function serinoOpenDictionary() {
+  document.getElementById("dictionary-search").value = "";
+  serinoRenderDictionaryList();
+  document.getElementById("dictionary-overlay").classList.add("active");
+}
+
+function serinoCloseDictionary() {
+  document.getElementById("dictionary-overlay").classList.remove("active");
+}
+
+function serinoCloseDictionaryIfBackdrop(evt) {
+  if (evt.target.id === "dictionary-overlay") serinoCloseDictionary();
+}
+
+function serinoRenderDictionaryList() {
+  const course = serinoActiveCourse();
+  const entries = serinoDictionaryEntries(course);
+  const query = document.getElementById("dictionary-search").value.trim().toLowerCase();
+  const filtered = query
+    ? entries.filter(
+        (e) => e.learnWord.toLowerCase().includes(query) || e.nativeWord.toLowerCase().includes(query)
+      )
+    : entries;
+
+  document.getElementById("dictionary-sub").textContent = serinoT("dictionary_sub_template", { count: entries.length });
+
+  const list = document.getElementById("dictionary-list");
+  list.innerHTML = "";
+
+  if (filtered.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "dictionary-empty";
+    empty.textContent = serinoT("dictionary_empty");
+    list.appendChild(empty);
+    return;
+  }
+
+  let lastCategory = null;
+  filtered.forEach((entry) => {
+    if (entry.categoryLabel !== lastCategory) {
+      const label = document.createElement("div");
+      label.className = "dictionary-group-label";
+      label.textContent = `${entry.categoryIcon} ${entry.categoryLabel}`;
+      list.appendChild(label);
+      lastCategory = entry.categoryLabel;
+    }
+    const row = document.createElement("div");
+    row.className = "dictionary-row";
+    row.innerHTML = `<span class="dictionary-word">${entry.learnWord}</span><span class="dictionary-translation">${entry.nativeWord}</span>`;
+    list.appendChild(row);
+  });
+}
+
+/* ---------- Alfabe eğitimi (Latin dışı alfabesi olan diller için) ----------
+   SERINO_ALPHABETS içinde girişi olmayan diller (örn. İngilizce, Fransızca)
+   için ana ekrandaki alfabe kartı hiç gösterilmez. Öğrenilen harfler
+   course.alphabetLearned dizisinde tutulur, böylece bu da ilerlemeyle
+   birlikte büyür. */
+
+let serinoAlphabetSession = null;
+
+function serinoRenderAlphabetCard(course) {
+  const card = document.getElementById("alphabet-card");
+  const letters = SERINO_ALPHABETS[course.learnLang];
+  if (!letters) {
+    card.style.display = "none";
+    return;
+  }
+  card.style.display = "";
+  const learned = (course.alphabetLearned || []).length;
+  const total = letters.length;
+  document.getElementById("alphabet-card-progress").textContent =
+    learned >= total ? serinoT("alphabet_done_badge") : serinoT("alphabet_progress_template", { done: learned, total });
+}
+
+function serinoOpenAlphabet() {
+  const course = serinoActiveCourse();
+  if (!SERINO_ALPHABETS[course.learnLang]) return;
+  serinoAlphabetShowTab("learn");
+  serinoRenderAlphabetGrid();
+  serinoGoto("screen-alphabet");
+}
+
+function serinoCloseAlphabet() {
+  serinoAlphabetSession = null;
+  serinoRenderHome();
+  serinoGoto("screen-home");
+}
+
+function serinoAlphabetShowTab(tab) {
+  document.getElementById("alphabet-tab-learn").classList.toggle("active", tab === "learn");
+  document.getElementById("alphabet-tab-practice").classList.toggle("active", tab === "practice");
+  document.getElementById("alphabet-learn-panel").style.display = tab === "learn" ? "flex" : "none";
+  document.getElementById("alphabet-practice-panel").style.display = tab === "practice" ? "flex" : "none";
+  document.getElementById("alphabet-practice-footer").style.display = tab === "practice" ? "flex" : "none";
+  if (tab === "practice") serinoStartAlphabetPractice();
+}
+
+function serinoRenderAlphabetGrid() {
+  const course = serinoActiveCourse();
+  const letters = SERINO_ALPHABETS[course.learnLang];
+  const learned = course.alphabetLearned || [];
+  const grid = document.getElementById("alphabet-grid");
+  grid.innerHTML = "";
+  letters.forEach((letter) => {
+    const card = document.createElement("button");
+    card.className = "alphabet-letter-card" + (learned.includes(letter.upper) ? " letter-learned" : "");
+    card.innerHTML = `<span class="alphabet-letter-glyph">${letter.upper}${letter.lower}</span><span class="alphabet-letter-translit">${letter.translit}</span>`;
+    card.onclick = () => serinoSpeakLetter(letter, course);
+    grid.appendChild(card);
+  });
+}
+
+function serinoMarkLetterLearned(course, letter) {
+  if (!course.alphabetLearned) course.alphabetLearned = [];
+  if (!course.alphabetLearned.includes(letter.upper)) {
+    course.alphabetLearned.push(letter.upper);
+    serinoSaveState(serinoState);
+  }
+}
+
+function serinoSpeakLetter(letter, course) {
+  serinoMarkLetterLearned(course, letter);
+  serinoRenderAlphabetGrid();
+  serinoSpeakText(letter.lower, course.learnLang);
+}
+
+function serinoStartAlphabetPractice() {
+  const course = serinoActiveCourse();
+  const letters = SERINO_ALPHABETS[course.learnLang];
+  serinoAlphabetSession = {
+    letters: serinoShuffle(letters),
+    index: 0,
+    correct: 0,
+    xpGain: 0,
+    answered: false,
+  };
+  serinoRenderAlphabetQuestion();
+}
+
+/* Her soru rastgele iki yönden birinde sorulur:
+   - ileri: Kiril harfi gösterilir, doğru okunuşu (name) seçilir.
+   - ters: harfin Latin karşılığı (translit) gösterilir, doğru Kiril harfi
+     seçilir - bunun için her harfin translit değeri tek/benzersiz olmalı
+     (bkz. data.js - sert/yumuşak işaret gibi "özel karakterler" ʺ/ʹ). */
+function serinoRenderAlphabetQuestion() {
+  const s = serinoAlphabetSession;
+  const course = serinoActiveCourse();
+  const letters = SERINO_ALPHABETS[course.learnLang];
+  const letter = s.letters[s.index];
+  s.answered = false;
+  const reverse = Math.random() < 0.5;
+  s.reverse = reverse;
+
+  document.getElementById("alphabet-practice-progress").textContent = serinoT("alphabet_progress_template", {
+    done: s.index,
+    total: s.letters.length,
+  });
+  document.getElementById("alphabet-practice-instruction").textContent = serinoT(
+    reverse ? "alphabet_instruction_reverse" : "alphabet_instruction_forward"
+  );
+
+  const correct = reverse ? letter.upper + letter.lower : letter.name;
+  document.getElementById("alphabet-prompt-letter").textContent = reverse
+    ? letter.translit
+    : letter.upper + letter.lower;
+
+  const pool = letters.filter((l) => l !== letter).map((l) => (reverse ? l.upper + l.lower : l.name));
+  const distractors = serinoShuffle(pool).slice(0, 3);
+  const options = serinoShuffle([correct, ...distractors]);
+
+  const grid = document.getElementById("alphabet-options-grid");
+  grid.innerHTML = "";
+  options.forEach((opt) => {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.textContent = opt;
+    btn.onclick = () => serinoSelectAlphabetOption(btn, opt, letter, correct);
+    grid.appendChild(btn);
+  });
+
+  const feedback = document.getElementById("alphabet-feedback-text");
+  feedback.textContent = "";
+  feedback.className = "feedback-text";
+  const continueBtn = document.getElementById("alphabet-continue-btn");
+  continueBtn.disabled = true;
+  continueBtn.textContent = serinoT("btn_continue");
+}
+
+function serinoSelectAlphabetOption(btnEl, chosen, letter, correct) {
+  const s = serinoAlphabetSession;
+  if (s.answered) return;
+  s.answered = true;
+  const isCorrect = chosen === correct;
+
+  document.querySelectorAll("#alphabet-options-grid .option-btn").forEach((b) => {
+    b.disabled = true;
+    if (b.textContent === correct) b.classList.add("correct");
+  });
+  if (!isCorrect) btnEl.classList.add("wrong");
+
+  const feedback = document.getElementById("alphabet-feedback-text");
+  if (isCorrect) {
+    s.correct += 1;
+    s.xpGain += 5;
+    feedback.textContent = serinoT("feedback_correct");
+    feedback.className = "feedback-text feedback-correct";
+    serinoSoundCorrect();
+  } else {
+    feedback.textContent = serinoT("feedback_wrong_template", { text: correct });
+    feedback.className = "feedback-text feedback-wrong";
+    serinoSoundWrong();
+  }
+
+  serinoMarkLetterLearned(serinoActiveCourse(), letter);
+  document.getElementById("alphabet-continue-btn").disabled = false;
+}
+
+function serinoAlphabetNext() {
+  const s = serinoAlphabetSession;
+  if (!s.answered) return;
+  s.index += 1;
+  if (s.index >= s.letters.length) {
+    serinoFinishAlphabetPractice();
+  } else {
+    serinoRenderAlphabetQuestion();
+  }
+}
+
+function serinoFinishAlphabetPractice() {
+  const s = serinoAlphabetSession;
+  const course = serinoActiveCourse();
+  const progress = serinoState.progress;
+  progress.xp += s.xpGain;
+  serinoLogXp(progress, s.xpGain);
+  course.alphabetDone = true;
+  serinoSaveState(serinoState);
+  if (s.correct === s.letters.length) serinoSoundComplete();
+  serinoAlphabetSession = null;
+  serinoRenderAlphabetGrid();
+  serinoAlphabetShowTab("learn");
 }
 
 /* ---------- Ayarlar ---------- */
@@ -283,6 +551,52 @@ function serinoResetAllClick() {
     serinoResetAll();
     location.reload();
   }
+}
+
+/* ---------- İlerlemeyi dışa/içe aktarma (yedekleme, cihazlar arası taşıma) ----------
+   localStorage tek bir tarayıcıya bağlı olduğundan, ilerlemeyi bir .json
+   dosyasına indirip başka bir tarayıcı/cihazda geri yükleyebilmek için. */
+
+function serinoExportProgress() {
+  const dataStr = JSON.stringify(serinoState, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `serino-ilerleme-${serinoTodayStr()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function serinoTriggerImportProgress() {
+  document.getElementById("import-progress-input").click();
+}
+
+function serinoImportProgressFile(event) {
+  const file = event.target.files[0];
+  event.target.value = ""; // aynı dosyayı tekrar seçebilmek için sıfırla
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(reader.result);
+    } catch (e) {
+      alert(serinoT("import_error_invalid"));
+      return;
+    }
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.courses) || !parsed.profile) {
+      alert(serinoT("import_error_invalid"));
+      return;
+    }
+    if (!confirm(serinoT("confirm_import_progress"))) return;
+    localStorage.setItem(SERINO_STORAGE_KEY, JSON.stringify(parsed));
+    location.reload();
+  };
+  reader.readAsText(file);
 }
 
 function serinoToggleSound() {
@@ -374,6 +688,18 @@ function serinoSoundComplete() {
   [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => serinoPlayTone(f, i * 0.09, 0.22, "sine", 0.12));
 }
 
+/* Metni sesli okur (tarayıcının yerleşik speechSynthesis API'si - dosya
+   gerekmez). Desteklenmiyorsa veya izin yoksa sessizce hiçbir şey yapmaz. */
+function serinoSpeakText(text, langCode) {
+  try {
+    if (!window.speechSynthesis || !text) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = SERINO_TTS_LOCALE[langCode] || "";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  } catch (e) {}
+}
+
 /* ---------- Küçük görsel efektler ---------- */
 
 function serinoShakeElement(el) {
@@ -459,10 +785,48 @@ function serinoRenderHearts(hearts) {
   }
 }
 
+/* ---------- Ders bilgilendirme kartı (Duolingo tarzı "Tips") ---------- */
+/* Derse başlamadan önce gramer, kelime ve telaffuz hakkında kısa bilgi
+   verir. SERINO_LESSON_TIPS içinde ilgili (learnLang, levelId) girişi
+   yoksa o bölüm boş bırakılır, ekran yine de çalışır. */
+
+function serinoOpenLessonInfo(unitId) {
+  const unit = SERINO_UNITS.find((u) => u.id === unitId);
+  const course = serinoActiveCourse();
+  const category = serinoCategory(unit.categoryId);
+  const tips = (SERINO_LESSON_TIPS[course.learnLang] || {})[unit.levelId];
+
+  serinoPendingLessonUnitId = unitId;
+
+  document.getElementById("lesson-info-icon").textContent = category.icon;
+  document.getElementById("lesson-info-title").textContent = category.label[course.nativeLang];
+  document.getElementById("lesson-info-grammar").textContent = tips ? tips.grammar[course.nativeLang] : "";
+  document.getElementById("lesson-info-vocab").textContent = serinoT("lesson_info_vocab_template", {
+    category: category.label[course.nativeLang],
+  });
+  document.getElementById("lesson-info-pronunciation").textContent = tips ? tips.pronunciation[course.nativeLang] : "";
+
+  serinoGoto("screen-lesson-info");
+}
+
+function serinoCloseLessonInfo() {
+  serinoPendingLessonUnitId = null;
+  serinoGoto("screen-home");
+}
+
+function serinoBeginLessonFromInfo() {
+  const unitId = serinoPendingLessonUnitId;
+  serinoPendingLessonUnitId = null;
+  serinoStartLesson(unitId);
+}
+
 function serinoStartLesson(unitId) {
   const unit = SERINO_UNITS.find((u) => u.id === unitId);
   serinoSession = {
     unit: unit,
+    phase: "teach", // "teach" (yeni kelimeleri tanıt) -> "quiz" (sor)
+    teachWords: unit.words.slice(),
+    teachIndex: 0,
     questions: serinoBuildQuestions(unit),
     index: 0,
     correct: 0,
@@ -471,7 +835,7 @@ function serinoStartLesson(unitId) {
     answered: false,
   };
   serinoGoto("screen-lesson");
-  serinoRenderQuestion();
+  serinoRenderTeachCard();
 }
 
 function serinoQuitLesson() {
@@ -481,15 +845,55 @@ function serinoQuitLesson() {
   }
 }
 
+/* Toplam ilerleme: "kelimeyi öğren" adımları + quiz soruları birlikte. */
+function serinoLessonProgressPercent() {
+  const s = serinoSession;
+  const total = s.teachWords.length + s.questions.length;
+  const done = s.phase === "teach" ? s.teachIndex : s.teachWords.length + s.index;
+  return Math.round((done / total) * 100);
+}
+
+/* Quiz sormadan önce her yeni kelimeyi tek tek tanıtan kart - kelime +
+   ana dildeki karşılığı + telaffuz için hoparlör butonu. */
+function serinoRenderTeachCard() {
+  const s = serinoSession;
+  const course = serinoActiveCourse();
+  const word = s.teachWords[s.teachIndex];
+
+  document.getElementById("lesson-progress").style.width = serinoLessonProgressPercent() + "%";
+  serinoRenderHearts(s.hearts);
+
+  document.getElementById("lesson-instruction").textContent = serinoT("instruction_learn");
+
+  const promptEl = document.getElementById("prompt-word");
+  promptEl.textContent = word[course.learnLang];
+  promptEl.classList.remove("prompt-sentence");
+
+  const translationEl = document.getElementById("prompt-translation");
+  translationEl.textContent = word[course.nativeLang];
+  translationEl.style.display = "block";
+
+  document.getElementById("options-grid").style.display = "none";
+  document.getElementById("build-area").style.display = "none";
+
+  document.getElementById("feedback-text").textContent = "";
+  document.getElementById("feedback-text").className = "feedback-text";
+
+  const continueBtn = document.getElementById("lesson-continue-btn");
+  continueBtn.disabled = false;
+  continueBtn.textContent = serinoT("btn_continue");
+}
+
 function serinoRenderQuestion() {
   const s = serinoSession;
   const q = s.questions[s.index];
   s.answered = false;
 
-  document.getElementById("lesson-progress").style.width =
-    Math.round((s.index / s.questions.length) * 100) + "%";
+  document.getElementById("lesson-progress").style.width = serinoLessonProgressPercent() + "%";
 
   serinoRenderHearts(s.hearts);
+
+  document.getElementById("prompt-translation").style.display = "none";
 
   const promptEl = document.getElementById("prompt-word");
   promptEl.textContent = q.prompt;
@@ -514,6 +918,21 @@ function serinoRenderQuestion() {
     document.getElementById("options-grid").style.display = "grid";
     serinoRenderChoiceQuestion(q);
   }
+}
+
+/* Hoparlör butonu: öğretim kartındaki kelimeyi ya da quiz'deki hedef dil
+   metnini (cümle kurma sorularında doğru cümleyi) seslendirir. */
+function serinoSpeakPrompt() {
+  const s = serinoSession;
+  if (!s) return;
+  const course = serinoActiveCourse();
+  if (s.phase === "teach") {
+    serinoSpeakText(s.teachWords[s.teachIndex][course.learnLang], course.learnLang);
+    return;
+  }
+  const q = s.questions[s.index];
+  const text = q.type === "build" ? q.correctText : q.prompt;
+  serinoSpeakText(text, course.learnLang);
 }
 
 function serinoRenderChoiceQuestion(q) {
@@ -644,6 +1063,18 @@ function serinoApplyAnswerResult(isCorrect, correctText) {
 
 function serinoNextStep() {
   const s = serinoSession;
+
+  if (s.phase === "teach") {
+    s.teachIndex += 1;
+    if (s.teachIndex >= s.teachWords.length) {
+      s.phase = "quiz";
+      serinoRenderQuestion();
+    } else {
+      serinoRenderTeachCard();
+    }
+    return;
+  }
+
   const q = s.questions[s.index];
 
   if (!s.answered) {

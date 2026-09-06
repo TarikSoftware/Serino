@@ -213,6 +213,48 @@ button {
   margin: -8px 0 -4px -8px;
 }
 
+/* ---------- Ders bilgilendirme kartı ("Tips") ---------- */
+
+.lesson-info-card {
+  max-width: 440px;
+  align-items: stretch;
+  text-align: left;
+  gap: 12px;
+}
+
+.lesson-info-icon {
+  font-size: 2.2rem;
+  align-self: center;
+}
+
+.lesson-info-title {
+  text-align: center;
+}
+
+.lesson-info-section {
+  background: var(--cream-2);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lesson-info-section h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  color: var(--pink-dark);
+}
+
+.lesson-info-section p {
+  margin: 0;
+  color: var(--brown-soft);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 /* ---------- Butonlar ---------- */
 
 .btn {
@@ -654,6 +696,13 @@ button {
   box-shadow: 0 8px 24px var(--shadow);
 }
 
+.prompt-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
 .prompt-word {
   font-family: "Fredoka", sans-serif;
   font-size: 2rem;
@@ -665,6 +714,31 @@ button {
   font-size: 1.35rem;
   line-height: 1.5;
   font-weight: 600;
+}
+
+.speaker-btn {
+  background: var(--cream-2);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--pink-dark);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .speaker-btn:hover {
+    background: var(--lang-hover-bg);
+  }
+}
+
+.prompt-translation {
+  margin: 10px 0 0;
+  color: var(--brown-soft);
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 /* ---------- Cümle kurma ---------- */
@@ -965,6 +1039,146 @@ button {
   padding: 4px 10px;
   border-radius: 999px;
   flex-shrink: 0;
+}
+
+/* ---------- Sözlüğüm modalı ---------- */
+
+.dictionary-modal {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+#dictionary-search {
+  margin: 4px 0 12px;
+}
+
+.dictionary-list {
+  max-height: 50vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  margin-bottom: 12px;
+}
+
+.dictionary-group-label {
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--brown-soft);
+  margin: 10px 0 2px;
+}
+
+.dictionary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--cream-2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.dictionary-word {
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  color: var(--brown);
+}
+
+.dictionary-translation {
+  color: var(--brown-soft);
+  font-size: 0.88rem;
+  text-align: right;
+}
+
+.dictionary-empty {
+  color: var(--brown-soft);
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ---------- Alfabe kartı (ana ekran) ---------- */
+
+.alphabet-card {
+  border: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ---------- Alfabe ekranı ---------- */
+
+.alphabet-tabs {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: center;
+}
+
+.alphabet-tab-btn {
+  background: var(--cream-2);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  color: var(--brown-soft);
+  cursor: pointer;
+}
+
+.alphabet-tab-btn.active {
+  border-color: var(--pink);
+  color: var(--pink-dark);
+  background: var(--card);
+}
+
+.alphabet-body {
+  width: 100%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 24px;
+  gap: 18px;
+}
+
+.alphabet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.alphabet-letter-card {
+  background: var(--card);
+  border: 2px solid var(--cream-2);
+  border-radius: var(--radius-sm);
+  padding: 12px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  color: var(--brown);
+}
+
+.alphabet-letter-card.letter-learned {
+  border-color: var(--sage-dark);
+}
+
+.alphabet-letter-glyph {
+  font-family: "Fredoka", sans-serif;
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.alphabet-letter-translit {
+  font-size: 0.68rem;
+  color: var(--brown-soft);
 }
 
 /* ---------- Masaüstü düzeni ----------

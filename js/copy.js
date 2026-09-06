@@ -25,6 +25,12 @@ const SERINO_GREETINGS = {
     evening: { salutation: "Buenas noches", notes: ["Termina bien el día", "Tu práctica de la noche te espera"] },
     night: { salutation: "Buenas noches", notes: ["Unas palabras antes de dormir", "Un momento tranquilo para estudiar"] },
   },
+  ru: {
+    morning: { salutation: "Доброе утро", notes: ["Начни день с энергией ☀️", "Пара слов с твоим кофе?"] },
+    afternoon: { salutation: "Добрый день", notes: ["Идеальное время для перерыва", "Как насчёт выучить пару слов?"] },
+    evening: { salutation: "Добрый вечер", notes: ["Заверши день красиво", "Твоя вечерняя практика ждёт"] },
+    night: { salutation: "Спокойной ночи", notes: ["Пара слов перед сном", "Тихий момент для учёбы"] },
+  },
 };
 
 const SERINO_RESULT_MESSAGES = {
@@ -84,6 +90,20 @@ const SERINO_RESULT_MESSAGES = {
       "No te rindas, rellena tu café y continúa.",
     ],
   },
+  ru: {
+    success: [
+      "Сегодня ты сделал ещё один шаг вперёд.",
+      "Какой тёплый момент обучения!",
+      "Продолжай в том же духе, у тебя отлично получается.",
+      "Маленькие шаги создают большую разницу.",
+    ],
+    fail: [
+      "Ничего страшного, в следующий раз получится.",
+      "Каждая попытка продвигает тебя немного дальше.",
+      "Сделай глубокий вдох и попробуй снова.",
+      "Не сдавайся, налей ещё кофе и продолжай.",
+    ],
+  },
 };
 
 const SERINO_WEEKLY_MESSAGES = {
@@ -110,6 +130,12 @@ const SERINO_WEEKLY_MESSAGES = {
     { min: 1, text: "Hiciste un buen comienzo." },
     { min: 60, text: "¡Esta semana va muy bien!" },
     { min: 150, text: "¡Qué semana de aprendizaje tan buena!" },
+  ],
+  ru: [
+    { min: 0, text: "Отличное время для нового начала на этой неделе." },
+    { min: 1, text: "Ты хорошо начал." },
+    { min: 60, text: "Эта неделя проходит очень тепло!" },
+    { min: 150, text: "Какая тёплая неделя обучения!" },
   ],
 };
 
